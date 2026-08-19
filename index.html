@@ -80,6 +80,8 @@ main{flex:1;min-height:0;display:grid;place-items:center;padding:18px 12px 9px}
 .btn:hover:not(:disabled){background:rgba(255,255,255,.1);transform:translateY(-1px)}
 .btn:disabled{opacity:.3;cursor:default}
 .btn:focus-visible,.open:focus-visible{outline:2px solid var(--gold2);outline-offset:3px}
+.snd{width:32px;min-width:32px;height:32px;min-height:32px;padding:0;display:grid;place-items:center;border-radius:50%;font-size:13px;transition:opacity .3s,background .18s}
+.snd.off{opacity:.4}
 .hint{margin-top:8px;font-size:10px;color:rgba(255,255,255,.35);text-align:center;max-width:340px}
 
 .mobile{display:none}
@@ -98,6 +100,7 @@ footer{flex:none;padding:0 14px 10px;text-align:center;color:rgba(255,255,255,.2
 /* ---- vista de una sola página: móviles y pantallas de poca altura (landscape) ---- */
 @media (max-width:760px),(max-height:560px){
 header{height:52px;padding:0 13px}
+.snd{width:29px;min-width:29px;height:29px;min-height:29px;font-size:12px}
 .brand{font-size:9px}.bar{width:70px}.meter{font-size:9px}
 main{padding:10px 8px 6px}
 .desktop{display:none}
@@ -141,7 +144,7 @@ footer{padding-bottom:max(8px,env(safe-area-inset-bottom))}
 
 <header>
   <div class="brand">Dios te ama</div>
-  <div class="meter"><span id="meterText" aria-live="polite">1–2 / 18</span><div class="bar"><i id="meterBar"></i></div></div>
+  <div class="meter"><button class="btn snd" id="sound" aria-pressed="false" title="Activar la música" aria-label="Música de fondo">♪</button><span id="meterText" aria-live="polite">1–2 / 18</span><div class="bar"><i id="meterBar"></i></div></div>
 </header>
 
 <main>
@@ -274,7 +277,107 @@ function prev(){
   render();
 }
 
-$('open').onclick=()=>{opened=true;landing.classList.add('hide');render()};
+/* ---- musica ambiental generativa: Web Audio API, sin archivos ni librerias ----
+   Pad de cuerdas suaves sobre la progresion Re - La - Sim - Sol (I-V-vi-IV),
+   con campanas dispersas en pentatonica y una reverberacion de sala amplia
+   sintetizada a partir de ruido. Todo se calcula en el navegador.        */
+const music=(()=>{
+  let ctx=null,master=null,conv=null,chordTimer=null,bellTimer=null,step=0,on=false;
+  const CHORDS=[[50,57,62,66],[45,57,61,64],[47,54,59,62],[43,55,59,62]]; // Re La Sim Sol
+  const PENTA=[74,76,78,81,83,86];                                        // pentatonica de Re
+  const SEC=11;                                    // duracion de cada acorde
+  const hz=m=>440*Math.pow(2,(m-69)/12);
+  function build(){
+    const AC=window.AudioContext||window.webkitAudioContext;
+    ctx=new AC();
+    master=ctx.createGain();master.gain.value=0;
+    const comp=ctx.createDynamicsCompressor();     // red de seguridad, nunca satura
+    master.connect(comp);comp.connect(ctx.destination);
+    // impulso de reverberacion: ruido con caida exponencial
+    const secs=3.6,len=Math.floor(ctx.sampleRate*secs),buf=ctx.createBuffer(2,len,ctx.sampleRate);
+    for(let c=0;c<2;c++){const d=buf.getChannelData(c);
+      for(let i=0;i<len;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/len,2.6)}
+    conv=ctx.createConvolver();conv.buffer=buf;
+    const w=ctx.createGain();w.gain.value=.8;conv.connect(w);w.connect(master);
+  }
+  function voice(freq,t,dur,type,peak,atk){
+    const g=ctx.createGain();
+    g.gain.setValueAtTime(.0001,t);
+    g.gain.linearRampToValueAtTime(peak,t+atk);
+    g.gain.setValueAtTime(peak,t+dur-atk*1.4);
+    g.gain.linearRampToValueAtTime(.0001,t+dur);
+    const f=ctx.createBiquadFilter();f.type='lowpass';
+    f.frequency.setValueAtTime(680,t);
+    f.frequency.linearRampToValueAtTime(1200,t+dur*.5);
+    f.frequency.linearRampToValueAtTime(680,t+dur);
+    f.connect(g);g.connect(master);g.connect(conv);
+    [-5,5].forEach(det=>{const o=ctx.createOscillator();
+      o.type=type;o.frequency.value=freq;o.detune.value=det;
+      o.connect(f);o.start(t);o.stop(t+dur+.2)});
+  }
+  function chord(){
+    const t=ctx.currentTime+.05,notes=CHORDS[step++%CHORDS.length];
+    notes.forEach((n,i)=>voice(hz(n),t,SEC+2.5,i?'triangle':'sine',i?.05:.09,4.5));
+    chordTimer=setTimeout(chord,SEC*1000);
+  }
+  function bell(){
+    const t=ctx.currentTime+.05,f=hz(PENTA[Math.floor(Math.random()*PENTA.length)]);
+    const g=ctx.createGain();
+    g.gain.setValueAtTime(.0001,t);
+    g.gain.linearRampToValueAtTime(.06,t+.03);
+    g.gain.exponentialRampToValueAtTime(.0001,t+3.4);
+    g.connect(master);g.connect(conv);
+    const o=ctx.createOscillator();o.type='sine';o.frequency.value=f;
+    o.connect(g);o.start(t);o.stop(t+3.5);
+    const h=ctx.createOscillator(),hg=ctx.createGain();hg.gain.value=.16;
+    h.type='sine';h.frequency.value=f*2.01;h.connect(hg);hg.connect(g);
+    h.start(t);h.stop(t+3.5);
+    bellTimer=setTimeout(bell,2800+Math.random()*4500);
+  }
+  function fade(to,secs){
+    const t=ctx.currentTime;
+    master.gain.cancelScheduledValues(t);
+    master.gain.setValueAtTime(master.gain.value,t);
+    master.gain.linearRampToValueAtTime(to,t+secs);
+  }
+  return{
+    get on(){return on},
+    start(){
+      try{
+        if(!ctx)build();
+        if(ctx.state==='suspended')ctx.resume();
+        if(!chordTimer){chord();bellTimer=setTimeout(bell,4500)}
+        fade(.5,6);on=true;                        // entrada lenta, nunca de golpe
+      }catch(e){on=false}
+      return on;
+    },
+    stop(){
+      if(!ctx)return(on=false);
+      fade(0,1.6);on=false;
+      setTimeout(()=>{if(!on&&ctx){clearTimeout(chordTimer);clearTimeout(bellTimer);
+        chordTimer=bellTimer=null;ctx.suspend()}},1800);
+      return on;
+    }
+  };
+})();
+const sndBtn=$('sound');
+function setSound(want,persist){
+  const state=want?music.start():music.stop();
+  sndBtn.setAttribute('aria-pressed',state?'true':'false');
+  sndBtn.classList.toggle('off',!state);
+  sndBtn.title=state?'Silenciar la música':'Activar la música';
+  if(persist!==false){try{localStorage.setItem('dta-music',state?'1':'0')}catch(e){}}
+}
+sndBtn.onclick=()=>setSound(!music.on);
+let wasOn=false;                                   // al ocultar la pestaña, silencio
+document.addEventListener('visibilitychange',()=>{
+  if(document.hidden){wasOn=music.on;if(wasOn)setSound(false,false)}
+  else if(wasOn){wasOn=false;setSound(true,false)}
+});
+
+$('open').onclick=()=>{opened=true;landing.classList.add('hide');render();
+  let want=true;try{want=localStorage.getItem('dta-music')!=='0'}catch(e){}
+  if(want)setSound(true,false)};
 bNext.onclick=next;bPrev.onclick=prev;mNext.onclick=next;mPrev.onclick=prev;
 
 const half=(el,e)=>{const r=el.getBoundingClientRect();((e.clientX-r.left)>r.width*.52?next:prev)()};
@@ -297,7 +400,7 @@ document.addEventListener('keydown',e=>{
   else if(e.key==='ArrowLeft'||e.key==='PageUp'){e.preventDefault();prev()}
   else if(e.key==='Home'){page=0;render()}
   else if(e.key==='End'){page=one.matches?total-1:(SPREADS-1)*2;render()}
-  else if(e.key==='Escape'){opened=false;landing.classList.remove('hide');$('open').focus()}
+  else if(e.key==='Escape'){opened=false;landing.classList.remove('hide');setSound(false,false);$('open').focus()}
 });
 
 // al rotar el dispositivo o cambiar de vista, el estado se mantiene coherente
