@@ -1,0 +1,311 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#07152e">
+<meta name="description" content="Dios te ama · un pequeño libro digital de esperanza, fe, paz y promesas de Dios.">
+<title>Dios te ama · Libro digital</title>
+<style>
+:root{
+--bg:#061329;--bg2:#10284f;--paper:#fffdf8;--paper2:#f5efe2;--ink:#1b2a43;--muted:#667086;
+--gold:#d9b667;--gold2:#f3dc99;
+--serif:Georgia,"Times New Roman",serif;--sans:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;
+/* tipografía fluida: limitada por ancho Y por alto, para que nunca se desborde */
+--fs-title:clamp(26px,min(3.4vw,6vh),54px);
+--fs-lead:clamp(15px,min(1.9vw,3.1vh),27px);
+--fs-body:clamp(11.5px,min(1.25vw,2.1vh),16px);
+--fs-cover:clamp(36px,min(5.6vw,8.6vh),80px);
+}
+*{box-sizing:border-box}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;overscroll-behavior:none;background:radial-gradient(circle at 50% -10%,rgba(111,161,245,.22),transparent 32%),linear-gradient(180deg,var(--bg2),var(--bg) 68%,#020714);color:#fff}
+body{font-family:var(--sans);-webkit-text-size-adjust:100%}
+button{font:inherit}
+.app{height:100dvh;display:flex;flex-direction:column;position:relative}
+.ambient{position:fixed;inset:0;pointer-events:none;background:radial-gradient(circle at 18% 84%,rgba(233,199,120,.055),transparent 20%),radial-gradient(circle at 84% 35%,rgba(100,153,235,.05),transparent 25%)}
+
+header{height:64px;flex:none;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 clamp(15px,3vw,44px);border-bottom:1px solid rgba(255,255,255,.07);background:rgba(2,10,24,.25);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);position:relative;z-index:20}
+.brand{font-size:10px;letter-spacing:.19em;text-transform:uppercase;color:rgba(255,255,255,.67);white-space:nowrap}
+.meter{display:flex;align-items:center;gap:10px;color:rgba(255,255,255,.48);font-size:10px}
+.meter span{white-space:nowrap;font-variant-numeric:tabular-nums}
+.bar{width:min(190px,24vw);height:3px;border-radius:999px;background:rgba(255,255,255,.11);overflow:hidden}
+.bar i{display:block;width:0;height:100%;background:linear-gradient(90deg,var(--gold),#fff2bb);transition:width .55s ease}
+
+main{flex:1;min-height:0;display:grid;place-items:center;padding:18px 12px 9px}
+.desktop{width:min(1160px,96vw);display:flex;flex-direction:column;align-items:center}
+/* el libro se limita también por altura disponible -> nunca se corta en pantallas bajas */
+.stage{position:relative;width:min(1080px,94vw,(100dvh - 215px)*1.55);aspect-ratio:1.55/1;filter:drop-shadow(0 32px 42px rgba(0,0,0,.32));-webkit-user-select:none;user-select:none}
+.book{position:absolute;inset:0}
+#sheets{position:absolute;inset:0;perspective:2600px;perspective-origin:50% 50%}
+.book:after{content:"";position:absolute;top:2%;bottom:2%;left:49.72%;width:.56%;background:linear-gradient(90deg,transparent,rgba(0,0,0,.24),transparent);filter:blur(3px);opacity:.58;pointer-events:none;z-index:500}
+
+.base{position:absolute;top:0;bottom:0;width:50%;overflow:hidden;color:var(--ink)}
+.left{left:0;border-radius:10px 0 0 10px;background:var(--paper2);box-shadow:inset -13px 0 19px rgba(0,0,0,.07)}
+.right{left:50%;border-radius:0 10px 10px 0;background:var(--paper);box-shadow:inset 10px 0 20px rgba(0,0,0,.045)}
+.left .paper{border-radius:10px 0 0 10px}
+.right .paper{border-radius:0 10px 10px 0}
+
+.sheet{position:absolute;left:50%;top:0;bottom:0;width:50%;transform-origin:left center;transform-style:preserve-3d;will-change:transform;transition:transform .9s cubic-bezier(.18,.72,.18,1);cursor:pointer}
+.sheet.turn{transform:rotateY(-180deg)}
+.face{position:absolute;inset:0;-webkit-backface-visibility:hidden;backface-visibility:hidden;overflow:hidden;background:var(--paper);color:var(--ink)}
+.front{border-radius:0 10px 10px 0;box-shadow:inset 10px 0 20px rgba(0,0,0,.045)}
+.back{transform:rotateY(180deg);border-radius:10px 0 0 10px;box-shadow:inset -10px 0 20px rgba(0,0,0,.05);background:var(--paper2)}
+
+.paper{height:100%;position:relative;background:inherit;overflow:hidden;padding:clamp(20px,5.8%,72px) clamp(22px,6.2%,78px);display:flex;flex-direction:column;justify-content:center;color:var(--ink)}
+.paper:before{content:"";position:absolute;inset:6.5%;border:1px solid rgba(192,165,106,.18);pointer-events:none}
+.paper:after{content:"";position:absolute;left:8%;right:8%;bottom:6%;height:1px;background:linear-gradient(90deg,transparent,rgba(209,194,162,.7),transparent)}
+.kicker{font:600 10px/1 var(--sans);letter-spacing:.18em;text-transform:uppercase;color:#826b3e;margin-bottom:clamp(8px,1.6vh,15px);position:relative;z-index:2}
+.title{font:400 var(--fs-title)/1 var(--serif);margin:0 0 clamp(8px,1.6vh,15px);position:relative;z-index:2;color:#17263e}
+.title span{display:block}
+.lead{font:400 var(--fs-lead)/1.38 var(--serif);max-width:690px;margin:0;position:relative;z-index:2;color:#283b5a}
+.ref{font:600 10px/1 var(--sans);letter-spacing:.14em;text-transform:uppercase;color:#8d7544;margin-top:clamp(10px,1.8vh,17px);position:relative;z-index:2}
+.body{font:400 var(--fs-body)/1.7 var(--sans);max-width:650px;color:var(--muted);margin:clamp(10px,1.9vh,18px) 0 0;position:relative;z-index:2}
+.divider{width:70px;height:1px;background:linear-gradient(90deg,var(--gold),transparent);margin-top:clamp(11px,2vh,20px);position:relative;z-index:2}
+
+.cover{background:radial-gradient(circle at 54% 33%,rgba(255,226,145,.28),transparent 14%),radial-gradient(circle at 18% 11%,rgba(93,148,233,.18),transparent 28%),linear-gradient(135deg,#06142d,#183866 55%,#071326);color:#fff}
+.cover:before{border-color:rgba(242,216,145,.28)}
+.cover:after{display:none}
+.cover .kicker{color:rgba(255,255,255,.64);text-align:center}
+.cover .title{color:#fff;text-align:center;font-size:var(--fs-cover);line-height:.98}
+.cover .title span{color:var(--gold2)}
+.cover .body{color:rgba(255,255,255,.73);text-align:center;max-width:560px;margin-inline:auto}
+.orn{font-size:15px;letter-spacing:.32em;color:var(--gold2);margin-top:clamp(10px,1.8vh,18px);text-align:center}
+/* página final en blanco (lado derecho del último pliego) */
+.end{align-items:center;text-align:center;color:#8d7544}
+.end .orn{color:var(--gold);opacity:.8}
+.end p{font:400 var(--fs-body)/1.7 var(--sans);color:var(--muted);margin:12px 0 0;max-width:80%}
+
+.controls{display:flex;gap:9px;margin-top:15px}
+.btn{border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.06);color:#fff;border-radius:999px;padding:10px 15px;font-size:12px;cursor:pointer;-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);transition:background .18s,transform .18s;min-width:44px;min-height:40px}
+.btn:hover:not(:disabled){background:rgba(255,255,255,.1);transform:translateY(-1px)}
+.btn:disabled{opacity:.3;cursor:default}
+.btn:focus-visible,.open:focus-visible{outline:2px solid var(--gold2);outline-offset:3px}
+.hint{margin-top:8px;font-size:10px;color:rgba(255,255,255,.35);text-align:center;max-width:340px}
+
+.mobile{display:none}
+.landing{position:fixed;inset:0;z-index:90;display:grid;place-items:center;background:radial-gradient(circle at 50% 36%,rgba(242,214,145,.11),transparent 15%),linear-gradient(180deg,#091a38,#020813);transition:opacity .3s ease .16s,visibility .3s ease .16s;overflow:auto}
+.landingInner{transition:opacity .16s ease}
+.landing.hide .landingInner{opacity:0}
+.landing.hide{opacity:0;visibility:hidden;pointer-events:none}
+.landingInner{text-align:center;max-width:650px;padding:25px}
+.landingKicker{font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:rgba(255,255,255,.5);margin-bottom:18px}
+.landing h1{font:400 clamp(42px,min(8vw,12vh),88px)/.92 var(--serif);margin:0}
+.landing h1 span{display:block;color:var(--gold2)}
+.landing p{max-width:500px;margin:22px auto 27px;font:400 clamp(13px,min(2vw,2.4vh),15px)/1.7 var(--sans);color:rgba(255,255,255,.67)}
+.open{border:1px solid rgba(242,216,145,.38);background:linear-gradient(#f6dda0,#d7b463);color:#2d2415;border-radius:999px;padding:13px 23px;font-weight:700;cursor:pointer;box-shadow:0 12px 30px rgba(0,0,0,.22)}
+footer{flex:none;padding:0 14px 10px;text-align:center;color:rgba(255,255,255,.24);font-size:9px}
+
+/* ---- vista de una sola página: móviles y pantallas de poca altura (landscape) ---- */
+@media (max-width:760px),(max-height:560px){
+header{height:52px;padding:0 13px}
+.brand{font-size:9px}.bar{width:70px}.meter{font-size:9px}
+main{padding:10px 8px 6px}
+.desktop{display:none}
+.mobile{width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0}
+/* overflow:hidden recorta la hoja que gira: nunca queda "colgando" fuera del libro */
+.mbook{width:min(92vw,460px);height:min(74svh,660px);position:relative;perspective:1900px;overflow:hidden;border-radius:10px;filter:drop-shadow(0 22px 30px rgba(0,0,0,.34));-webkit-user-select:none;user-select:none;touch-action:pan-y;cursor:pointer}
+.msheet{position:absolute;inset:0;transform-origin:left center;transform-style:preserve-3d;will-change:transform;transition:transform .72s cubic-bezier(.18,.75,.18,1);border-radius:10px}
+.msheet.turn{transform:rotateY(-180deg)}
+.mface{position:absolute;inset:0;-webkit-backface-visibility:hidden;backface-visibility:hidden;overflow:hidden;background:var(--paper);border-radius:10px}
+.mback{transform:rotateY(180deg);background:var(--paper2)}
+.mpaper{height:100%;background:inherit;overflow:hidden;padding:9% 10%;display:flex;flex-direction:column;justify-content:center;position:relative}
+.mpaper:before{content:"";position:absolute;inset:5.5%;border:1px solid rgba(192,165,106,.18);pointer-events:none}
+.mpaper .title{font-size:clamp(26px,min(8.5vw,7vh),46px)}
+.mpaper .lead{font-size:clamp(15px,min(4.8vw,3.4vh),27px)}
+.mpaper .body{font-size:clamp(12px,min(3.5vw,2.4vh),16px);line-height:1.68}
+.mcover{background:radial-gradient(circle at 53% 31%,rgba(255,226,145,.27),transparent 15%),linear-gradient(145deg,#06142d,#173765 57%,#071326);color:#fff}
+.mcover .kicker{color:rgba(255,255,255,.64);text-align:center}
+.mcover .title{color:#fff;text-align:center;font-size:clamp(38px,min(12vw,10vh),64px)}
+.mcover .title span{color:var(--gold2)}
+.mcover .body{color:rgba(255,255,255,.73);text-align:center}
+.mcontrols{display:flex;gap:9px;margin-top:12px}
+.hint{max-width:320px;margin-top:6px}
+footer{padding-bottom:max(8px,env(safe-area-inset-bottom))}
+}
+@media (max-height:430px){.hint,footer{display:none}.mcontrols{margin-top:8px}}
+@media (prefers-reduced-motion:reduce){.sheet,.msheet,.landing,.landingInner,.bar i,.btn{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="app">
+<div class="ambient"></div>
+
+<div class="landing" id="landing">
+  <div class="landingInner">
+    <div class="landingKicker">Un mensaje para el corazón</div>
+    <h1>Dios <span>te ama</span></h1>
+    <p>Un pequeño recorrido de esperanza, fe, paz y promesas de Dios. Tómate unos minutos, lee con calma y deja que cada página hable a tu corazón.</p>
+    <button class="open" id="open">Abrir el libro</button>
+  </div>
+</div>
+
+<header>
+  <div class="brand">Dios te ama</div>
+  <div class="meter"><span id="meterText" aria-live="polite">1–2 / 18</span><div class="bar"><i id="meterBar"></i></div></div>
+</header>
+
+<main>
+  <section class="desktop">
+    <div class="stage" id="stage"><div class="book"><div class="base left" id="left"></div><div class="base right" id="right"></div><div id="sheets"></div></div></div>
+    <div class="controls"><button class="btn" id="prev" aria-label="Página anterior">← Anterior</button><button class="btn" id="next" aria-label="Página siguiente">Siguiente →</button></div>
+    <div class="hint">Toca la mitad derecha o izquierda del libro. También puedes usar ← → en el teclado.</div>
+  </section>
+
+  <section class="mobile">
+    <div class="mbook" id="mbook"></div>
+    <div class="mcontrols"><button class="btn" id="mprev" aria-label="Página anterior">←</button><button class="btn" id="mnext" aria-label="Página siguiente">→</button></div>
+    <div class="hint">Desliza o toca un lado para pasar la página.</div>
+  </section>
+</main>
+
+<footer>Un libro para leer despacio.</footer>
+</div>
+
+<script>
+(()=>{
+const P=[
+{c:'Un mensaje para el corazón',t:['Dios','te ama'],b:'Un pequeño recorrido de esperanza, fe, paz y promesas de Dios. Tómate unos minutos y lee con calma.',cover:1},
+{c:'Antes de continuar',t:['Detente','un momento'],lead:'Respira. No necesitas tener todas las respuestas ahora mismo.',b:'A veces un mensaje sencillo llega en el momento indicado. Estas páginas fueron pensadas para recordarte una verdad que permanece: el amor de Dios no depende de un día perfecto.'},
+{c:'01 · Esperanza',t:['Hay','esperanza'],q:'“Porque yo sé los pensamientos que tengo acerca de vosotros, dice Jehová, pensamientos de paz, y no de mal, para daros el fin que esperáis.”',r:'Jeremías 29:11',b:'Cuando no puedas ver el camino completo, recuerda que Dios sí lo ve. La esperanza no nace de tener todo resuelto, sino de saber en quién estás confiando.'},
+{c:'02 · Amor de Dios',t:['Eres','amado'],q:'“Porque de tal manera amó Dios al mundo, que ha dado á su Hijo unigénito...”',r:'Juan 3:16',b:'El amor de Dios no depende de que hoy te sientas fuerte. Él te conoce por completo y aun así te llama por amor.'},
+{c:'03 · Fe',t:['Confía','aunque no veas'],q:'“Es pues la fe la sustancia de las cosas que se esperan, la demostración de las cosas que no se ven.”',r:'Hebreos 11:1',b:'La fe no significa que nunca tengas preguntas. Significa que, incluso con preguntas, decides seguir caminando con Dios.'},
+{c:'04 · Paz',t:['Puedes','descansar'],q:'“Echando toda vuestra solicitud en él, porque él tiene cuidado de vosotros.”',r:'1 Pedro 5:7',b:'Lo que te pesa no tiene que permanecer únicamente sobre tus hombros. Entrégaselo a Dios, incluso si tienes que hacerlo una y otra vez.'},
+{c:'05 · Fortaleza',t:['Un paso','más'],q:'“Todo lo puedo en Cristo que me fortalece.”',r:'Filipenses 4:13',b:'La fortaleza no siempre se siente como valentía. A veces es simplemente levantarte, dar un paso y confiar en que Dios te sostendrá.'},
+{c:'06 · Perdón',t:['Puedes','comenzar de nuevo'],q:'“Si confesamos nuestros pecados, él es fiel y justo para que nos perdone...”',r:'1 Juan 1:9',b:'El pasado puede enseñarte, pero no tiene que convertirse en una cadena. El perdón de Dios abre una puerta hacia un nuevo comienzo.'},
+{c:'07 · Propósito',t:['Tu vida','importa'],q:'“Porque somos hechura suya, criados en Cristo Jesús para buenas obras...”',r:'Efesios 2:10',b:'No eres un accidente. Hay personas que necesitan tu historia, tus talentos, tu servicio y tu forma única de amar.'},
+{c:'08 · Confianza',t:['Puedes','confiar'],q:'“Fíate de Jehová de todo tu corazón, y no estribes en tu prudencia.”',r:'Proverbios 3:5',b:'No necesitas entender cada detalle antes de avanzar. Puedes caminar confiando en el carácter de Dios.'},
+{c:'09 · Cuando tienes miedo',t:['No','temas'],q:'“No temas, que yo soy contigo; no desmayes, que yo soy tu Dios...”',r:'Isaías 41:10',b:'El miedo puede tocar tu puerta, pero no tiene que gobernar tus decisiones. Dios puede caminar contigo incluso en lo que más te asusta.'},
+{c:'10 · Cuando estás triste',t:['Dios ve','tus lágrimas'],q:'“Cercano está Jehová á los quebrantados de corazón; y salvará á los contritos de espíritu.”',r:'Salmo 34:18',b:'No tienes que esconder tu tristeza para acercarte a Dios. Puedes llevarle exactamente lo que sientes.'},
+{c:'11 · Dios está contigo',t:['Él','permanece'],q:'“He aquí, yo estoy con vosotros todos los días, hasta el fin del mundo.”',r:'Mateo 28:20',b:'Hay temporadas en las que todo cambia. En medio de esos cambios, la presencia de Dios puede seguir siendo tu punto firme.'},
+{c:'12 · Oración',t:['Háblale','a Dios'],q:'“Orad sin cesar.”',r:'1 Tesalonicenses 5:17',b:'Orar no tiene que ser complicado. Puedes hablar con Dios con tus propias palabras, en cualquier lugar y en cualquier momento.'},
+{c:'13 · Gratitud',t:['Mira','lo que sí tienes'],q:'“Dad gracias en todo; porque esta es la voluntad de Dios para con vosotros...”',r:'1 Tesalonicenses 5:18',b:'La gratitud no niega los problemas. Te ayuda a recordar que, incluso en días difíciles, todavía hay regalos que reconocer.'},
+{c:'14 · Restauración',t:['Dios','puede renovar'],q:'“He aquí, yo hago nuevas todas las cosas.”',r:'Apocalipsis 21:5',b:'Lo roto no siempre permanece roto. Hay heridas que toman tiempo, procesos que requieren paciencia y momentos donde Dios puede traer restauración.'},
+{c:'15 · Una promesa para ti',t:['No estás','solo'],q:'“Jehová te bendiga, y te guarde: Jehová haga resplandecer su rostro sobre ti...”',r:'Números 6:24–25',b:'No olvides esto: eres profundamente amado. Sigue caminando. Sigue orando. Sigue creyendo. Dios puede hacer mucho más de lo que hoy alcanzas a ver.'},
+{c:'Una última página',t:['Quédate','con esto'],lead:'Puedes volver a estas páginas cuando necesites recordar esperanza, paz o amor.',b:'Y si este libro te hizo bien, compártelo con alguien que pueda necesitar un momento de luz.'}
+];
+
+const total=P.length;
+const SHEETS=Math.ceil((total-1)/2);   // hojas físicas del libro abierto
+const SPREADS=Math.ceil(total/2);      // pliegos (vistas dobles) en escritorio
+const one=matchMedia('(max-width:760px),(max-height:560px)'); // vista de una página
+
+let page=0,opened=false,lastSp=0,baseTimer=null;
+const slow=matchMedia("(prefers-reduced-motion:reduce)");
+
+const $=id=>document.getElementById(id);
+const landing=$('landing'),left=$('left'),right=$('right'),sheets=$('sheets'),mbook=$('mbook'),
+      meterText=$('meterText'),meterBar=$('meterBar'),
+      bPrev=$('prev'),bNext=$('next'),mPrev=$('mprev'),mNext=$('mnext');
+
+const END=`<div class="paper end"><div class="orn">✦ ✦ ✦</div><p>Fin · Vuelve cuando lo necesites.</p></div>`;
+
+function content(p,m){
+  const W=m?'mpaper':'paper';
+  if(p.cover) return `<div class="${W} ${m?'mcover':'cover'}"><div class="kicker">${p.c}</div><h2 class="title">${p.t[0]}<span>${p.t[1]}</span></h2><div class="orn">✦ ✦ ✦</div><p class="body">${p.b}</p></div>`;
+  const mid=p.q?`<p class="lead">${p.q}</p><div class="ref">${p.r}</div>`:(p.lead?`<p class="lead">${p.lead}</p>`:'');
+  return `<div class="${W}"><div class="kicker">${p.c}</div><h2 class="title">${p.t[0]}<span>${p.t[1]}</span></h2>${mid}${p.b?`<div class="divider"></div><p class="body">${p.b}</p>`:''}</div>`;
+}
+
+function buildDesktop(){
+  right.innerHTML=END;
+  sheets.innerHTML='';
+  for(let i=0;i<SHEETS;i++){
+    const a=1+i*2,b=a+1;
+    const el=document.createElement('div');
+    el.className='sheet';
+    el.innerHTML=`<div class="face front">${content(P[a])}</div><div class="face back">${b<total?content(P[b]):END}</div>`;
+    sheets.appendChild(el);
+  }
+}
+function buildMobile(){
+  mbook.innerHTML='';
+  for(let i=0;i<total;i++){
+    const el=document.createElement('div');
+    el.className='msheet';
+    el.innerHTML=`<div class="mface">${content(P[i],true)}</div><div class="mface mback"></div>`;
+    mbook.appendChild(el);
+  }
+}
+
+function render(){
+  const sp=Math.floor(page/2);                    // pliego actual
+  // ---- escritorio: una hoja girada por cada pliego pasado ----
+  [...sheets.children].forEach((s,i)=>{
+    const t=i<sp;
+    s.classList.toggle('turn',t);
+    s.style.zIndex=t?i+1:SHEETS*2-i+1;            // giradas abajo, pendientes siempre encima
+  });
+  // el lado izquierdo solo se actualiza cuando la hoja ya lo cubre (>90 grados),
+  // si no, el contenido nuevo asoma bajo la hoja que aun esta girando
+  clearTimeout(baseTimer);
+  const setBase=()=>{left.innerHTML=content(P[sp*2])};
+  if(sp>lastSp&&opened&&!slow.matches)baseTimer=setTimeout(setBase,470);else setBase();
+  lastSp=sp;
+  // ---- móvil ----
+  [...mbook.children].forEach((s,i)=>{
+    const t=i<page;
+    s.classList.toggle('turn',t);
+    s.style.zIndex=t?i+1:total*2-i+1;
+  });
+  // ---- indicador ----
+  if(one.matches){
+    meterText.textContent=`${page+1} / ${total}`;
+    meterBar.style.width=`${((page+1)/total)*100}%`;
+  }else{
+    const a=sp*2+1,b=Math.min(sp*2+2,total);
+    meterText.textContent=(a===b?`${a}`:`${a}–${b}`)+` / ${total}`;
+    meterBar.style.width=`${((sp+1)/SPREADS)*100}%`;
+  }
+  const atStart=page===0,atEnd=one.matches?page>=total-1:sp>=SPREADS-1;
+  bPrev.disabled=mPrev.disabled=atStart;
+  bNext.disabled=mNext.disabled=atEnd;
+}
+
+function next(){
+  if(!opened)return;
+  if(one.matches){ if(page<total-1)page++; }
+  else{ const sp=Math.floor(page/2); if(sp<SPREADS-1)page=(sp+1)*2; }
+  render();
+}
+function prev(){
+  if(!opened)return;
+  if(one.matches){ if(page>0)page--; }
+  else{ const sp=Math.floor(page/2); if(sp>0)page=(sp-1)*2; }
+  render();
+}
+
+$('open').onclick=()=>{opened=true;landing.classList.add('hide');render()};
+bNext.onclick=next;bPrev.onclick=prev;mNext.onclick=next;mPrev.onclick=prev;
+
+const half=(el,e)=>{const r=el.getBoundingClientRect();((e.clientX-r.left)>r.width*.52?next:prev)()};
+$('stage').addEventListener('click',e=>{if(opened)half(e.currentTarget,e)});
+mbook.addEventListener('click',e=>{if(opened&&!moved)half(e.currentTarget,e)});
+
+// deslizar en táctil
+let sx=null,sy=null,moved=false;
+mbook.addEventListener('touchstart',e=>{const t=e.changedTouches[0];sx=t.clientX;sy=t.clientY;moved=false},{passive:true});
+mbook.addEventListener('touchend',e=>{
+  if(sx===null)return;
+  const t=e.changedTouches[0],dx=t.clientX-sx,dy=t.clientY-sy;
+  if(Math.abs(dx)>40&&Math.abs(dx)>Math.abs(dy)*1.15){moved=true;(dx<0?next:prev)()}
+  sx=sy=null;
+},{passive:true});
+
+document.addEventListener('keydown',e=>{
+  if(!opened)return;
+  if(e.key==='ArrowRight'||e.key==='PageDown'||e.key===' '){e.preventDefault();next()}
+  else if(e.key==='ArrowLeft'||e.key==='PageUp'){e.preventDefault();prev()}
+  else if(e.key==='Home'){page=0;render()}
+  else if(e.key==='End'){page=one.matches?total-1:(SPREADS-1)*2;render()}
+  else if(e.key==='Escape'){opened=false;landing.classList.remove('hide');$('open').focus()}
+});
+
+// al rotar el dispositivo o cambiar de vista, el estado se mantiene coherente
+const onSwitch=()=>{if(!one.matches)page=Math.floor(page/2)*2;render()};
+one.addEventListener?one.addEventListener('change',onSwitch):one.addListener(onSwitch);
+addEventListener('orientationchange',()=>setTimeout(render,120));
+
+buildDesktop();buildMobile();render();
+})();
+</script>
+</body></html>
